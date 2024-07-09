@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ForgotPassword;
+use App\Mail\VerifiedMail;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Validator;
+use Illuminate\Support\Facades\Mail;
 
 
 class AuthController extends Controller
@@ -17,7 +21,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'login_ecommerce']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'login_ecommerce', 'verified_auth', 'verified_email', 'verified_code', 'new_password']]);
     }
 
 
@@ -45,8 +49,11 @@ class AuthController extends Controller
         $user->phone = request()->phone;
         $user->type_user = 2;
         $user->email = request()->email;
+        $user->uniqd = uniqid();
         $user->password = bcrypt(request()->password);
         $user->save();
+
+        Mail::to(request()->email)->send(new VerifiedMail($user));
 
         return response()->json($user, 201);
     }
@@ -84,7 +91,46 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        if(!auth('api')->user()->email_verified_at) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
         return $this->respondWithToken($token);
+    }
+
+    public function verified_auth(Request $request){
+        $user = User::where("uniqd", $request->code_user)->first();
+        if(!$user){
+            return response()->json(["message"=> 403]);
+        }
+        $user->update(["email_verified_at" => now()]);
+        return response()->json(["message"=> 200]);
+    }
+
+    public function verified_email(Request $request){
+        $user = User::where("email", $request->email)->first();
+        if(!$user){
+            return response()->json(["message"=> 403]);
+        }
+        $user->update(["code_verified" => uniqid()]);
+        Mail::to($request->email)->send(new ForgotPassword($user));
+        return response()->json(["message"=> 200]);
+    }
+    public function verified_code(Request $request){
+        $user = User::where("code_verified", $request->code)->first();
+        if(!$user){
+            return response()->json(["message"=> 403]);
+        }
+        return response()->json(["message"=> 200]);
+    }
+    public function new_password(Request $request){
+        $user = User::where("code_verified", $request->code)->first();
+        try {
+            $user->update(["password" => bcrypt($request->new_password), "code_verified" => null]);
+            return response()->json(["message"=> 200]);
+        } catch (\Throwable $th) {
+            return response()->json(["message"=> 400]);
+        }
     }
 
     /**
