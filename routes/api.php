@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Product\AttributeProductController;
 use App\Http\Controllers\Admin\Product\CategorieController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,4 +34,10 @@ Route::group([
     Route::get("categories/config", [CategorieController::class, 'config']);
     Route::resource("categories", CategorieController::class);
     Route::post("categories/{id}",[CategorieController::class, 'update']);
+
+
+
+    Route::post("properties",[ AttributeProductController::class, 'store_propertie' ]);
+    Route::delete("properties/{id}",[ AttributeProductController::class, 'destroy_propertie' ]);
+    Route::resource("attributes", AttributeProductController::class);
 });
