@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Product\AttributeProductController;
 use App\Http\Controllers\Admin\Product\CategorieController;
+use App\Http\Controllers\Admin\SliderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -40,4 +41,9 @@ Route::group([
     Route::post("properties",[ AttributeProductController::class, 'store_propertie' ]);
     Route::delete("properties/{id}",[ AttributeProductController::class, 'destroy_propertie' ]);
     Route::resource("attributes", AttributeProductController::class);
+
+    Route::resource("sliders", SliderController::class);
+    Route::post("sliders/{id}",[SliderController::class, 'update']);
+
+
 });
