@@ -24,7 +24,7 @@ class ProductResource extends JsonResource
             "description" => $this->resource->description,
             "resumen" => $this->resource->resumen,
             "imagen" => env("APP_URL"). "storage/" .$this->resource->imagen,
-            "tags" => $this->resource->tags,
+            "tags" => $this->resource->tags ? json_decode($this->resource->tags) : [],
             "brand_id" => $this->resource->brand_id,
             "brand" => $this->resource->brand
                 ? [
@@ -56,6 +56,12 @@ class ProductResource extends JsonResource
             "stock" => $this->resource->stock,
             "state" => $this->resource->state,
             "created_at" => $this->resource->created_at->format("Y-m-d h:i:s"),
+            "images" => $this->resource->images->map(function($item){
+                return  [
+                    "id" => $item->id,
+                    "imagen" => env("APP_URL")."storage/".$item->imagen,
+                ];
+            }),
         ];
     }
 }
