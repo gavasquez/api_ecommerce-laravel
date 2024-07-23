@@ -68,7 +68,7 @@ class AuthController extends Controller
     {
         $credentials = request(['email', 'password']);
 
-        if (! $token = auth('api')->attempt([
+        if (!$token = auth('api')->attempt([
             "email" => request()->email,
             "password" => request()->password,
             "type_user" => 1
